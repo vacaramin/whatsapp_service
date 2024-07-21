@@ -1,0 +1,21 @@
+FROM golang:1.22.3-alpine3.20
+
+WORKDIR /app
+
+
+# Install gcc and other build dependencies
+RUN apk add --no-cache gcc musl-dev
+
+RUN go install github.com/cespare/reflex@latest
+RUN echo "--shutdown-timeout=5000ms -r '(\.go$|go\.mod)' -s -- sh -c 'go run -race . start'" >> ./reflex.conf
+ENV CGO_ENABLED=1 
+
+
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+ENTRYPOINT ["reflex", "--decoration=none", "-c", "./reflex.conf"]
+
+EXPOSE 8080
+ENV PORT 8080
